@@ -21,9 +21,8 @@ RUN_DEPENDS=	${RUBY_SITELIBDIR}/fcgi.rb:${PORTSDIR}/www/ruby-fcgi
 .endif
 
 NO_BUILD=	yes
-CONFLICTS?=	ja-tdiary-devel-[0-9]*
-PKGMESSAGE=	${WRKDIR}/pkg-message
 USE_RUBY=	yes
+RUBY_REQUIRE=	Ruby >= 182
 PORTSCOUT=	limitw:1,odd
 
 RUBY_SHEBANG_FILES=	index.fcgi \
@@ -45,17 +44,19 @@ PORTDOCS=	ChangeLog COPYING HOWTO-make-io.rd HOWTO-make-plugin.html \
 		HOWTO-write-tDiary.en.html HOWTO-write-tDiary.html INSTALL.html \
 		README.en.html README.html UPGRADE doc.css
 
-SUB_FILES=	pkg-message
+SUB_FILES=	pkg-message tdiaryinst.rb
+SUB_LIST+=	TDIARY_LANG=${TDIARY_LANG} \
+		TDIARY_SCRIPT=${TDIARY_SCRIPT}
 WRKSRC=		${WRKDIR}/${PORTNAME}-${PORTVERSION}
-DOCSDIR=	${PREFIX}/share/doc/${PORTNAME}${PKGNAMESUFFIX}
-EXAMPLESDIR=	${PREFIX}/share/examples/${PORTNAME}${PKGNAMESUFFIX}
+DOCSDIR=	${PREFIX}/share/doc/${UNIQUENAME}${PKGNAMESUFFIX}
+WWWDIR=		${PREFIX}/www/${UNIQUENAME}${PKGNAMESUFFIX}
+
+TDIARY_SCRIPT=	${UNIQUENAME}${PKGNAMESUFFIX}-inst.rb
 
 #TDIARY_LANG	ja:Japanese en:English zh:Traditional-Chinese
 .if !defined(TDIARY_LANG) || ( defined(TDIARY_LANG) && ${TDIARY_LANG} != ja )
 TDIARY_LANG=	en
 .endif
-
-RUBY_REQUIRE=	Ruby >= 182
 
 .include <bsd.port.pre.mk>
 
@@ -63,7 +64,7 @@ RUBY_REQUIRE=	Ruby >= 182
 .if !defined(RUBY_PROVIDED)
 IGNORE=	requires Ruby 1.9.1 or later
 .endif
-.endif # RUBY_VER
+.endif
 
 .if ${RUBY_VER} == 1.8
 .if !defined(RUBY_PROVIDED)
@@ -72,22 +73,23 @@ IGNORE=	requires Ruby 1.8.2 or later
 .if !defined(WITHOUT_TDIARY_NORA)
 RUN_DEPENDS+=	${RUBY_SITEARCHLIBDIR}/web/escape_ext.so:${PORTSDIR}/www/ruby-nora
 .endif
-.endif # RUBY_VER
+.endif
 
 post-extract:
 	@cd ${WRKSRC} && ${RM} -f README && ${MV} ChangeLog doc
 	@cd ${WRKSRC} && ${MV} doc ${WRKDIR}
 
-do-install:
-	@-${MKDIR} ${EXAMPLESDIR}
+pre-install:
 	@${SED} -e 's,#!/usr/bin/env ruby,#!${RUBY},' \
-		-e 's,@@@@PREFIX@@@@,${PREFIX},g' \
-		-e 's,@@@@TDIARY@@@@,${PORTNAME}${PKGNAMESUFFIX},g' \
-		-e 's,@@@@LANG@@@@,${TDIARY_LANG},g' \
-		${FILESDIR}/tdiaryinst.rb.in > ${EXAMPLESDIR}/tdiaryinst.rb
-	@(cd ${WRKSRC} && ${COPYTREE_SHARE} . ${EXAMPLESDIR})
+		${WRKDIR}/tdiaryinst.rb > ${WRKDIR}/${TDIARY_SCRIPT}
+
+do-install:
+	@${INSTALL_SCRIPT} ${WRKDIR}/${TDIARY_SCRIPT} ${PREFIX}/bin
+	@-${MKDIR} ${WWWDIR}
+	@(cd ${WRKSRC} && ${COPYTREE_SHARE} . ${WWWDIR})
 
 post-install:
+	@${ECHO_CMD} bin/${TDIARY_SCRIPT} >> ${TMPPLIST}
 .if !defined(NOPORTDOCS)
 	@${INSTALL} -d ${DOCSDIR}
 	@cd ${WRKDIR}/doc && ${INSTALL_DATA} ${PORTDOCS} ${DOCSDIR}
