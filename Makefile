@@ -8,8 +8,8 @@
 PORTNAME=	tdiary
 PORTVERSION=	2.3.3
 CATEGORIES?=	www ruby
-MASTER_SITES=	SF \
-		http://www.tdiary.org/download/
+MASTER_SITES=	http://www.tdiary.org/download/ \
+		SF
 PKGNAMESUFFIX=	-devel
 DISTNAME=	${PORTNAME}-full-${PORTVERSION}
 
@@ -86,9 +86,11 @@ pre-install:
 do-install:
 	@${INSTALL_SCRIPT} ${WRKDIR}/${TDIARY_SCRIPT} ${PREFIX}/bin
 	@-${MKDIR} ${WWWDIR}
-	@(cd ${WRKSRC} && ${COPYTREE_SHARE} . ${WWWDIR})
+	@${CP} -pR ${WRKSRC}/ ${WWWDIR}
+	@${CHOWN} -R ${WWWOWN}:${WWWGRP} ${WWWDIR}
 
 post-install:
+	@${ECHO_CMD} '@exec ${CHOWN} -R ${WWWOWN}:${WWWGRP} ${WWWDIR}' >> ${TMPPLIST}
 	@${ECHO_CMD} bin/${TDIARY_SCRIPT} >> ${TMPPLIST}
 .if !defined(NOPORTDOCS)
 	@${INSTALL} -d ${DOCSDIR}
