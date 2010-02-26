@@ -4,7 +4,7 @@
 # Date created:                        13 July 2003
 # Whom:                                KAMIYA Satosi  <mimoriso@gmail.com>
 #
-# $FreeBSD: ports/www/tdiary/files/tdiaryinst.rb.in,v 1.9 2008/03/04 18:41:28 beech Exp $
+# $FreeBSD: ports/www/tdiary-devel/files/tdiaryinst.rb.in,v 1.10 2009/09/12 03:13:30 tota Exp $
 #
 
 require 'getoptlong'
